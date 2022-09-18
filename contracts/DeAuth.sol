@@ -33,12 +33,11 @@ contract DeAuth {
     constructor(){}
 
     //This function provides us to connecting a new social media account with our wallet
-    function connectNewSocialMedia(string memory socialMedia,string memory walletApp,address walletAddress) public{ 
+    function connectNewSocialMedia(string memory socialMedia,string memory walletApp) public{ 
         require(!checkAValueExistInList(socialMedia, ConnectedSocialMedias[msg.sender][walletApp]),"Social media already connected to DeAuth");
-        walletAddress = msg.sender;
-        ConnectedSocialMedias[walletAddress][walletApp].push(socialMedia);
+        ConnectedSocialMedias[msg.sender][walletApp].push(socialMedia);
         emit AddNewPassword(
-            walletAddress,
+            msg.sender,
             block.timestamp,
             socialMedia,
             walletApp
@@ -102,8 +101,8 @@ contract DeAuth {
     }
 
 
-    function getConnectedSocialMedias(address owner,string memory walletApp)external view returns(string[] memory){
-        return ConnectedSocialMedias[owner][walletApp];
+    function getConnectedSocialMedias(string memory walletApp)external view returns(string[] memory){
+        return ConnectedSocialMedias[msg.sender][walletApp];
     }
 
 
