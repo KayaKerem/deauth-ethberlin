@@ -338,6 +338,18 @@
           Link Now
         </button>
       </p>
+      <div v-if="isConnected && registeredList.includes(selected)">
+        <p class="lead">
+          <button
+            type="button"
+            class="btn btn-outline-danger"
+            style="margin-top: 10px"
+            @click="removeFromContract"
+          >
+            Unlink
+          </button>
+        </p>
+      </div>
     </main>
 
     <footer class="mt-auto text-white-50">
@@ -454,6 +466,21 @@ export default {
         });
       }
     },
+    waitForTransaction2() {
+      if (this.registeredList.includes(this.selected)) {
+        Swal.fire({
+          title: "Transaction Pending...",
+          html: "This may take some time.",
+          timerProgressBar: true,
+          didOpen: () => {
+            Swal.showLoading();
+          },
+          willClose: () => {},
+        }).then((result) => {
+          console.log(result);
+        });
+      }
+    },
     refuseError(msg) {
       Swal.fire({
         icon: "error",
@@ -469,6 +496,14 @@ export default {
         color: "#716add",
         text: "This password is special and unique password specific to the account you are connecting to.",
         footer: signature,
+      });
+    },
+    removeSuccess() {
+      Swal.fire({
+        icon: "success",
+        title: "Well Done...",
+        color: "#716add",
+        text: "Your password has been successfully unlinked",
       });
     },
     async signMessage(message) {
@@ -545,6 +580,7 @@ export default {
       var element = document.body;
       element.classList.toggle("connected-body");
     },
+
     registerAccountToContract: async function () {
       try {
         const { ethereum } = window;
@@ -563,8 +599,46 @@ export default {
             "metamask"
           );
           console.log(deauthtxn);
+
           await deauthtxn.wait();
           await this.checkAccount();
+          console.log("mined ", deauthtxn.hash);
+
+          console.log("registiration happend!");
+        }
+      } catch (error) {
+        this.transactionError = true;
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Transaction error",
+        });
+      }
+    },
+    removeFromContract: async function () {
+      try {
+        const { ethereum } = window;
+
+        if (ethereum) {
+          const provider = new ethers.providers.Web3Provider(ethereum, "any");
+          const signer = provider.getSigner();
+          const Deauth = new ethers.Contract(
+            contractAddress,
+            contractABI,
+            signer
+          );
+          console.log("transaction happening...");
+          const deauthtxn = await Deauth.disconnectSocialMedia(
+            this.selected,
+            "metamask"
+          );
+          console.log(deauthtxn);
+          this.waitForTransaction2();
+          await deauthtxn.wait();
+          await this.checkAccount();
+          if (!this.transactionError) {
+            this.removeSuccess();
+          }
           console.log("mined ", deauthtxn.hash);
 
           console.log("registiration happend!");
